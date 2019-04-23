@@ -15,7 +15,24 @@ abstract class GraphicObject {
     this.lineColour = lineColour;
     this.lineWidth = lineWidth;
   }
-  
+
+  public void handleMouseEvent(PVector mousePos, String eventType) {
+    switch (eventType) {
+      case "press":
+        _handlePress(mousePos);
+        break;
+      case "drag":
+        _handleDrag(mousePos);
+        break;
+      case "release":
+        _handleRelease(mousePos);
+        break;
+      default:
+        println("Unsupported event type " + eventType);
+        break;
+    }
+  }
+
   void draw() {
 
     if (_hasMouseOver()) {
@@ -63,6 +80,10 @@ abstract class GraphicObject {
   public abstract boolean _hasMouseOver();
   
   protected abstract void _setLimits();
+  protected abstract void _handlePress(PVector);
+  protected abstract void _handleDrag(PVector);
+  protected abstract void _handleRelease(PVector);
+  
   protected abstract void specificShapeDraw();
 }
 
@@ -82,6 +103,10 @@ class Ellipse extends GraphicObject {
     this.size = new PVector(1, 1);
     this.fillColour = fillColour;
   }
+
+  void _handlePress(PVector mousePos) {}
+  void _handleDrag(PVector mousePos) {}
+  void _handleRelease(PVector mousePos) {}
 
   public String name() {
     return "ellipse";
@@ -141,6 +166,10 @@ class Rectangle extends GraphicObject {
     fill(fillColour); 
     rect(super.startPoint.x, super.startPoint.y, this.size.x, this.size.y);
   }
+
+  protected void _handlePress(PVector mousePos) {}
+  protected void _handleDrag(PVector mousePos) {}
+  protected void _handleRelease(PVector mousePos) {}
 
   protected void _setLimits() {
     super.leftmost = super.startPoint.x;
@@ -203,4 +232,7 @@ class Line extends GraphicObject {
   }
   
   protected void _setLimits() {}
+  protected void _handlePress(PVector mousePos) {}
+  protected void _handleDrag(PVector mousePos) {}
+  protected void _handleRelease(PVector mousePos) {}
 }
