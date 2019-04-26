@@ -1,39 +1,41 @@
+// drawingApp.psd - main project file wrapping up all the logic
 
 import g4p_controls.*;
 
 GView view2D;
-
 Canvas canvas;
+FileManager fileManager;
+ShapeFactory shapeFactory;
 
-PVector point1;
-PVector point2;
+// ============== DEFAULTS =================
 
 color selectedLineColour = color(255, 0, 0);
 color selectedBgColour = color(0, 0, 0);
 
+color bgColour = color(255, 255, 255);
+
 final static float lineWidth = 10;
 
-String selectedMode = "rect";
-String drawMode = "rect";
-  
-Line line;
-Rectangle rect;
+Modes selectedMode = Modes.RECT;
 
+//  ============== INIT =================
 void setup() {
   size(1100, 1100);
-  colorMode(RGB, 100);
-  
   view2D = new GView(this, canvasOffset, canvasOffset, canvasSize, canvasSize, JAVA2D);
   canvas = new Canvas(new PVector(canvasSize, canvasSize));
-
-  canvas.save();
+  shapeFactory = new ShapeFactory();
+  fileManager = new FileManager("test.draw");
 }
+
+// ============== DRAWING FUNCTIONS =================
 
 void updateView() {
   PGraphics v = view2D.getGraphics();
   v.beginDraw();
+  
   clear();
-  background(255, 255, 255);
+  
+  background(bgColour);
   canvas.drawAll();
   v.endDraw();
 }
@@ -42,6 +44,30 @@ void draw() {
   updateView();
 }
 
+void drawShape() {
+  
+  // lock the object until the mouse's released
+  locked = true;
+  lockedPoint = new PVector(mouseX, mouseY);
+
+  switch (selectedMode) {
+    case RECT:
+      lockedObj = new Rectangle(lockedPoint, color(selectedLineColour), color(selectedBgColour), lineWidth);
+      break;
+     
+    case ELLIPSE:
+      lockedObj = new Ellipse(lockedPoint, color(selectedLineColour), color(selectedBgColour), lineWidth);
+      break;
+      
+    default:
+      return;
+  }
+  
+  canvas.addObject(lockedObj);
+}
+
+//  ============== EVENT HANDLING =================
+
 boolean locked = false;
 
 GraphicObject lockedObj;
@@ -49,91 +75,63 @@ GraphicObject lockedObj;
 PVector modifier;
 PVector lockedPoint;
 
-void mousePressedRect() {
-  switch (selectedMode) {
-    case "rect":
-      locked = true;
-      lockedPoint = new PVector(mouseX, mouseY);
-
-      lockedObj = new Rectangle(lockedPoint, color(selectedLineColour), color(selectedBgColour), lineWidth);
+/* Handle resize & move actions */
+void manipulateShape() {
+  
+  if (lockedObj != null) {
+    locked = true;
     
-      canvas.addObject(lockedObj);
-
-      break;
-
-    case "resize":
-      if (lockedObj != null) {
-        locked = true;
+    switch (selectedMode) {
+      case RESIZE:
         lockedPoint = lockedObj.startPoint;
-      }
-      break;
-
-    case "move":
-      if (lockedObj != null) {
-        locked = true;
+        break;
+       
+      case MOVE:
         modifier = new PVector(mouseX, mouseY);
         modifier.sub(lockedObj.startPoint);
-      }
-      break;
+        break;
+        
+      default:
+        return;
+    }
   }
-}
-
-void mousePressedEllipse() {
-
 }
 
 void mousePressed() {
-  lockedObj = canvas.currentlyHovering();
-
-  if (lockedObj != null) {
-    switch (lockedObj.name()) {
-      case "rectangle":
-        mousePressedRect();
-        println("rect");
-        break;
-      case "ellipse":
-        mousePressedEllipse();
-        println("ellipse");
-        break;
-    }  
-  } 
-  else {
-    mousePressedRect();
+ 
+  if (isDrawingMode()) {
+    drawShape();
   }
-
-
-}
-
-void keyPressed() {
-  if (keyCode == UP) {
-    selectedMode = "move";
-  } else if (keyCode == DOWN) {
-    selectedMode = "rect";
-  } else {
-    selectedMode = "resize";
+  else {
+    lockedObj = canvas.currentlyHovering();
+    // make sure a shape's been locked
+    if (lockedObj != null) {
+      manipulateShape();
+    } 
   }
 }
 
 void mouseDragged() {
 
-  if (locked == true) {
-
-    if (mouseX < canvasOffset || mouseY < canvasOffset) {
+  if (locked == true && lockedObj != null) {
+    // make sure the user cannot draw outside the canvas
+    if (mouseX < canvasOffset || 
+        mouseY < canvasOffset || 
+        mouseX > width || 
+        mouseY > height) {
       return;
     }
 
     PVector mousePos = new PVector(mouseX, mouseY);
 
     switch (selectedMode) {
-      case "rect":
-      case "resize":
-
-        ((Rectangle)lockedObj).updateSize(mousePos.sub(lockedObj.startPoint));
-        break;
-
-      case "move":
+      case MOVE:
         mousePos.sub(modifier);
         lockedObj.startPoint = mousePos;
+        break;
+
+      default:
+        lockedObj.updateSize(mousePos.sub(lockedObj.startPoint));
         break;
     }
   }
@@ -141,7 +139,38 @@ void mouseDragged() {
 
 void mouseReleased() {
   if (locked == true) {
-
+    if (!isDrawingMode()) {
+      canvas.addObject(lockedObj);
+    }
+    // once the mouse's released, reset the locked values
+    lockedObj = null;
     locked = false;
+  }
+}
+
+//  ============== HOTKEYS =================
+
+void keyPressed() {
+  
+  switch (keyCode) {
+    case UP:
+      selectedMode = Modes.MOVE;
+      break;     
+     // e
+    case 69:
+      selectedMode = Modes.ELLIPSE;
+      break;
+     // r
+    case 82:
+      selectedMode = Modes.RECT;
+      break;
+      
+    case DOWN:
+      selectedMode = Modes.RESIZE;
+      break;
+      
+    default: 
+      fileManager.save();
+      break;
   }
 }

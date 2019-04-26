@@ -1,6 +1,12 @@
+// Shapes.pde - wrapper for shapes classes (Rect, Ellipse)
+
+// border colour for hovered shapes
+color selectedObjLineColour = color(25, 25, 25);
+
 abstract class GraphicObject {
   
   PVector startPoint;
+  PVector size;
 
   color lineColour;
   float lineWidth;
@@ -9,39 +15,26 @@ abstract class GraphicObject {
   float upmost;
   float downmost;
 
-
+  GraphicObject(PVector startPoint, color lineColour, float lineWidth, PVector size) {
+    this.startPoint = startPoint;
+    this.lineColour = lineColour;
+    this.lineWidth = lineWidth;
+    this.size = abs(size);
+  }
+  
   GraphicObject(PVector startPoint, color lineColour, float lineWidth) {
     this.startPoint = startPoint;
     this.lineColour = lineColour;
     this.lineWidth = lineWidth;
-  }
-
-  public void handleMouseEvent(PVector mousePos, String eventType) {
-    switch (eventType) {
-      case "press":
-        _handlePress(mousePos);
-        break;
-      case "drag":
-        _handleDrag(mousePos);
-        break;
-      case "release":
-        _handleRelease(mousePos);
-        break;
-      default:
-        println("Unsupported event type " + eventType);
-        break;
-    }
+    this.size = new PVector(1, 1);
   }
 
   void draw() {
 
-    if (_hasMouseOver()) {
-      lineColour = color(0, 0, 0);
-    }
     try { 
       _setLimits();
-      _normalise();
-      stroke(lineColour);
+      _normalisePosition();
+      stroke( _hasMouseOver() ? selectedObjLineColour : lineColour);
       strokeWeight(lineWidth);
       specificShapeDraw();
     }
@@ -49,16 +42,26 @@ abstract class GraphicObject {
       println("Couldn't draw shape");
     }
   }
-
-  void move(float coordX, float coordY) {
-    translate(coordX, coordY);
+  
+  public void updateSize(PVector newSize) {
+    size = newSize;
+    _setLimits();
+    _normalisePosition();
   }
 
-  void move(PVector movingPoint) {
-    translate(movingPoint.x, movingPoint.y);
+  public void updateSize(float sizeX, float sizeY) {
+    size = new PVector(sizeX, sizeY);
+    _setLimits();
+    _normalisePosition();
   }
   
-  protected void _normalise() {
+  public boolean _hasMouseOver() {
+      return (mouseX <= abs(rightmost) && mouseY >= abs(upmost) &&
+             mouseX >= abs(leftmost) && mouseY <= abs(downmost));
+  }
+  
+  // normalise a shape's position so it doesn't escape the canvas
+  private void _normalisePosition() {
     if (leftmost < canvasOffset) {
       startPoint.x += (canvasOffset - leftmost); 
     }
@@ -77,24 +80,20 @@ abstract class GraphicObject {
   }
 
   public abstract String name();
-  public abstract boolean _hasMouseOver();
+  // falicitator for shape saving and loading
+  public abstract String dataAsString();
   
+  // set a shape's upmost, downmost, leftmost and rightmost points
   protected abstract void _setLimits();
-  protected abstract void _handlePress(PVector);
-  protected abstract void _handleDrag(PVector);
-  protected abstract void _handleRelease(PVector);
-  
   protected abstract void specificShapeDraw();
 }
 
 class Ellipse extends GraphicObject {
   
-  PVector size;
   color fillColour;
 
   Ellipse(PVector startPoint, color lineColour, color fillColour, float lineWidth, PVector size) {
-    super(startPoint, lineColour, lineWidth);
-    this.size = size;
+    super(startPoint, lineColour, lineWidth, size);
     this.fillColour = fillColour;
   }
 
@@ -104,51 +103,42 @@ class Ellipse extends GraphicObject {
     this.fillColour = fillColour;
   }
 
-  void _handlePress(PVector mousePos) {}
-  void _handleDrag(PVector mousePos) {}
-  void _handleRelease(PVector mousePos) {}
-
   public String name() {
     return "ellipse";
+  }
+  
+  public String dataAsString() {
+    String data = "ellipse " + startPoint.x + " " + startPoint.y + " " + lineColour + " " + fillColour + 
+      " " + lineWidth + " " + size.x + " " + size.y;
+      
+     return data;
   }
 
   void specificShapeDraw() {
       fill(fillColour);
-      stroke(super.lineColour);
-      strokeWeight(super.lineWidth);
       ellipse(startPoint.x, startPoint.y, size.x, size.y);
   }
   
   protected void _setLimits() {
-    float radiusX = this.size.x / 2;
-    float radiusY = this.size.y / 2;
     
-    super.leftmost = super.startPoint.x - radiusX;
-    super.rightmost = super.startPoint.x + radiusY;
-    super.upmost = super.startPoint.y - radiusY;
-    super.downmost = super.startPoint.y + radiusY;
-  }
-  
-  boolean _hasMouseOver() {
-    if (mouseX >= (super.startPoint.x - size.x / 2) && 
-        mouseX <= (super.startPoint.x + size.x / 2) &&
-        mouseY >= (super.startPoint.y - size.y / 2) && 
-        mouseY <= (super.startPoint.y + size.y / 2)) {
-        
-          return true;
-      }
-      
-     return false;
+    PVector normalisedSize = abs(super.size);
+    
+    float radiusX = normalisedSize.x / 2;
+    float radiusY = normalisedSize.y / 2;
+    
+    super.leftmost = super.startPoint.x - radiusX - super.lineWidth / 2;
+    super.rightmost = super.startPoint.x + radiusY + super.lineWidth / 2;
+    super.upmost = super.startPoint.y - radiusY - super.lineWidth / 2;
+    super.downmost = super.startPoint.y + radiusY + super.lineWidth / 2;
   }
 }
 
 class Rectangle extends GraphicObject {
-  PVector size;
+  
   color fillColour;
   
   Rectangle(PVector startPoint, color lineColour, color fillColour, float lineWidth, PVector size) {
-    super(startPoint, lineColour, lineWidth);
-    this.size = size;
+    super(startPoint, lineColour, lineWidth, size);
     this.fillColour = fillColour;
   }
 
@@ -162,47 +152,40 @@ class Rectangle extends GraphicObject {
     return "rectangle";
   }
   
+  public String dataAsString() {
+    String data = "rectangle " + startPoint.x + " " + startPoint.y + " " + lineColour + " " + fillColour + 
+      " " + lineWidth + " " + size.x + " " + size.y;
+      
+    return data;
+  }
+  
   void specificShapeDraw() {
     fill(fillColour); 
     rect(super.startPoint.x, super.startPoint.y, this.size.x, this.size.y);
   }
 
-  protected void _handlePress(PVector mousePos) {}
-  protected void _handleDrag(PVector mousePos) {}
-  protected void _handleRelease(PVector mousePos) {}
-
   protected void _setLimits() {
-    super.leftmost = super.startPoint.x;
-    super.rightmost = super.startPoint.x + size.x;
-    super.upmost = super.startPoint.y;
-    super.downmost = super.startPoint.y + size.y;
-  }
-  
-  public void changeLineColour(color lineColour) {
-    super.lineColour = lineColour;
-  }
-  
-  public boolean _hasMouseOver() {
-    try {
-      return (mouseX >= super.startPoint.x && mouseY >= super.startPoint.y &&
-              mouseX <= (super.startPoint.x + this.size.x) && mouseY <= (super.startPoint.y + this.size.y));
-    }
-    catch (Exception ignored) {
-      return false;
-    }
-}
 
-  public void updateSize(PVector newSize) {
-    super._normalise();
-    size = newSize;
-  }
-
-  public void updateSize(float sizeX, float sizeY) {
-    super._normalise();
-    size = new PVector(sizeX, sizeY);
+    if (super.size.x > 0.0) {
+      super.leftmost = super.startPoint.x - super.lineWidth / 2;
+      super.rightmost = super.startPoint.x + super.size.x + super.lineWidth / 2;
+    }
+    else {
+      super.rightmost = super.startPoint.x - super.lineWidth / 2;
+      super.leftmost = super.startPoint.x + super.size.x + super.lineWidth / 2;
+    }
+    
+    if (super.size.y > 0.0) {
+      super.upmost = super.startPoint.y - super.lineWidth / 2;
+      super.downmost = super.startPoint.y + super.size.y + super.lineWidth / 2; 
+    }
+    else {
+      super.downmost = super.startPoint.y - super.lineWidth / 2;
+      super.upmost = super.startPoint.y + super.size.y + super.lineWidth / 2;
+    }
   }
 }
-
+/*
 class Line extends GraphicObject {
   PVector endPoint;
   double lineSize;
@@ -222,17 +205,13 @@ class Line extends GraphicObject {
     lineSize = super.startPoint.dist(this.endPoint);
   }
   
-  public boolean _hasMouseOver() {
-
-    PVector pressedPoint = new PVector(mouseX, mouseY);
-    double distanceStart = super.startPoint.dist(pressedPoint);
-    double distanceEnd = endPoint.dist(pressedPoint);
   
-    return doubleEqual(distanceStart + distanceEnd, lineSize);
+  public void updateSize(PVector newSize) {
+  }
+
+  public void updateSize(float sizeX, float sizeY) {
+
   }
   
   protected void _setLimits() {}
-  protected void _handlePress(PVector mousePos) {}
-  protected void _handleDrag(PVector mousePos) {}
-  protected void _handleRelease(PVector mousePos) {}
-}
+}*/
