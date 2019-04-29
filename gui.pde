@@ -13,19 +13,68 @@
  * Do not rename this tab!
  * =========================================================
  */
-import g4p_controls.*;
 
-public void dropList1_click1(GDropList source, GEvent event) { //_CODE_:dropList1:983334:
-  println("dropList1 - GDropList >> GEvent." + event + " @ " + millis());
-} //_CODE_:dropList1:983334:
+public void btnRect_click1(GButton source, GEvent event) { //_CODE_:btnRect:989503:
+  selectedMode = Modes.RECT;
+} //_CODE_:btnRect:989503:
 
-public void dropList2_click1(GDropList source, GEvent event) { //_CODE_:dropList2:490028:
-  println("dropList2 - GDropList >> GEvent." + event + " @ " + millis());
-} //_CODE_:dropList2:490028:
+public void btnEllipse_click1(GButton source, GEvent event) { //_CODE_:btnEllipse:537615:
+  selectedMode = Modes.ELLIPSE;
+} //_CODE_:btnEllipse:537615:
 
-synchronized public void win_draw1(PApplet appc, GWinData data) { //_CODE_:window1:487477:
-  appc.background(230);
-} //_CODE_:window1:487477:
+public void btnMove_click1(GButton source, GEvent event) { //_CODE_:btnMove:260513:
+  selectedMode = Modes.MOVE;
+} //_CODE_:btnMove:260513:
+
+public void btnResize_click1(GButton source, GEvent event) { //_CODE_:btnResize:784514:
+  selectedMode = Modes.RESIZE;
+} //_CODE_:btnResize:784514:
+
+public void listFile_click1(GDropList source, GEvent event) { //_CODE_:listFile:318425:
+
+  switch (listFile.getSelectedText()) {
+    case "Save":
+      fileManager.save();
+      break;
+    case "Load":
+      /* TODO:: OpenFileDialog
+void setup() {
+  selectInput("Select a file to process:", "fileSelected");
+}
+
+void fileSelected(File selection) {
+  if (selection == null) {
+    println("Window was closed or the user hit cancel.");
+  } else {
+    println("User selected " + selection.getAbsolutePath());
+  }
+}*/
+      println("pressed load");
+      break;
+  }
+} //_CODE_:listFile:318425:
+
+public void redSlider_change1(GCustomSlider source, GEvent event) { //_CODE_:redSlider:577591:
+  canvas.updateCrtColour();
+} //_CODE_:redSlider:577591:
+
+public void greenSlider_change1(GCustomSlider source, GEvent event) { //_CODE_:greenSlider:721115:
+  canvas.updateCrtColour();
+} //_CODE_:greenSlider:721115:
+
+public void blueSlider_change1(GCustomSlider source, GEvent event) { //_CODE_:blueSlider:794197:
+  canvas.updateCrtColour();
+} //_CODE_:blueSlider:794197:
+
+public void optFillColour_clicked1(GOption source, GEvent event) { //_CODE_:optFillColour:672283:
+  canvas.crtColourMode = ColourMode.FILL;
+  canvas.updateCrtColour();
+} //_CODE_:optFillColour:672283:
+
+public void optLineColour_clicked1(GOption source, GEvent event) { //_CODE_:optLineColour:690630:
+  canvas.crtColourMode = ColourMode.LINE;
+  canvas.updateCrtColour();
+} //_CODE_:optLineColour:690630:
 
 
 
@@ -36,21 +85,84 @@ public void createGUI(){
   G4P.setGlobalColorScheme(GCScheme.BLUE_SCHEME);
   G4P.setMouseOverEnabled(false);
   surface.setTitle("Sketch Window");
-  dropList1 = new GDropList(this, 202, 4, 90, 80, 3, 10);
-  dropList1.setItems(loadStrings("list_983334"), 0);
-  dropList1.addEventHandler(this, "dropList1_click1");
-  dropList2 = new GDropList(this, 110, 2, 90, 80, 3, 10);
-  dropList2.setItems(loadStrings("list_490028"), 0);
-  dropList2.addEventHandler(this, "dropList2_click1");
-  window1 = GWindow.getWindow(this, "Window title", 0, 0, 240, 120, JAVA2D);
-  window1.noLoop();
-  window1.setActionOnClose(G4P.KEEP_OPEN);
-  window1.addDrawHandler(this, "win_draw1");
-  window1.loop();
+  btnRect = new GButton(this, 21, 63, 80, 30);
+  btnRect.setText("Rect");
+  btnRect.setTextBold();
+  btnRect.setLocalColorScheme(GCScheme.PURPLE_SCHEME);
+  btnRect.addEventHandler(this, "btnRect_click1");
+  btnEllipse = new GButton(this, 22, 130, 80, 30);
+  btnEllipse.setText("Ellipse");
+  btnEllipse.setTextBold();
+  btnEllipse.setLocalColorScheme(GCScheme.PURPLE_SCHEME);
+  btnEllipse.addEventHandler(this, "btnEllipse_click1");
+  btnMove = new GButton(this, 23, 197, 80, 30);
+  btnMove.setText("Move mode");
+  btnMove.setTextBold();
+  btnMove.addEventHandler(this, "btnMove_click1");
+  btnResize = new GButton(this, 22, 261, 80, 30);
+  btnResize.setText("Resize mode");
+  btnResize.setTextBold();
+  btnResize.addEventHandler(this, "btnResize_click1");
+  listFile = new GDropList(this, 200, 21, 90, 80, 3, 10);
+  listFile.setItems(loadStrings("list_318425"), 0);
+  listFile.addEventHandler(this, "listFile_click1");
+  canvasView = new GView(this, 174, 152, 958, 913, JAVA2D);
+  redSlider = new GCustomSlider(this, 354, 25, 100, 50, "grey_blue");
+  redSlider.setShowValue(true);
+  redSlider.setShowLimits(true);
+  redSlider.setLimits(0, 0, 255);
+  redSlider.setNbrTicks(255);
+  redSlider.setShowTicks(true);
+  redSlider.setNumberFormat(G4P.INTEGER, 0);
+  redSlider.setLocalColorScheme(GCScheme.RED_SCHEME);
+  redSlider.setOpaque(false);
+  redSlider.addEventHandler(this, "redSlider_change1");
+  greenSlider = new GCustomSlider(this, 471, 25, 100, 50, "grey_blue");
+  greenSlider.setShowValue(true);
+  greenSlider.setShowLimits(true);
+  greenSlider.setLimits(0, 0, 255);
+  greenSlider.setNbrTicks(255);
+  greenSlider.setShowTicks(true);
+  greenSlider.setNumberFormat(G4P.INTEGER, 0);
+  greenSlider.setLocalColorScheme(GCScheme.GREEN_SCHEME);
+  greenSlider.setOpaque(false);
+  greenSlider.addEventHandler(this, "greenSlider_change1");
+  blueSlider = new GCustomSlider(this, 582, 25, 100, 50, "grey_blue");
+  blueSlider.setShowValue(true);
+  blueSlider.setShowLimits(true);
+  blueSlider.setLimits(0, 0, 255);
+  blueSlider.setNbrTicks(255);
+  blueSlider.setShowTicks(true);
+  blueSlider.setNumberFormat(G4P.INTEGER, 0);
+  blueSlider.setOpaque(false);
+  blueSlider.addEventHandler(this, "blueSlider_change1");
+  togGroup1 = new GToggleGroup();
+  optFillColour = new GOption(this, 350, 104, 120, 20);
+  optFillColour.setIconAlign(GAlign.LEFT, GAlign.MIDDLE);
+  optFillColour.setText("Fill Colour");
+  optFillColour.setOpaque(false);
+  optFillColour.addEventHandler(this, "optFillColour_clicked1");
+  optLineColour = new GOption(this, 504, 105, 120, 20);
+  optLineColour.setIconAlign(GAlign.LEFT, GAlign.MIDDLE);
+  optLineColour.setText("Line Colour");
+  optLineColour.setOpaque(false);
+  optLineColour.addEventHandler(this, "optLineColour_clicked1");
+  togGroup1.addControl(optFillColour);
+  optFillColour.setSelected(true);
+  togGroup1.addControl(optLineColour);
 }
 
 // Variable declarations 
 // autogenerated do not edit
-GDropList dropList1; 
-GDropList dropList2; 
-GWindow window1;
+GButton btnRect; 
+GButton btnEllipse; 
+GButton btnMove; 
+GButton btnResize; 
+GDropList listFile; 
+GView canvasView; 
+GCustomSlider redSlider; 
+GCustomSlider greenSlider; 
+GCustomSlider blueSlider; 
+GToggleGroup togGroup1; 
+GOption optFillColour; 
+GOption optLineColour; 

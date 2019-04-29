@@ -3,7 +3,8 @@
 import java.util.ListIterator;
 
 // left and top padding
-final static float canvasOffset = 124;
+final static float canvasOffsetX = 176;
+final static float canvasOffsetY = 155;
 final static int canvasSize = 1024; 
    
 class Canvas {
@@ -11,11 +12,29 @@ class Canvas {
   ArrayList<GraphicObject> graphicObjects;
   PVector startPoint;
   PVector size;
+  
+  color crtColour;
+  color crtLineColour;
+  ColourMode crtColourMode;
  
   public Canvas(PVector size) {
     graphicObjects = new ArrayList<GraphicObject>();
-    this.startPoint = new PVector(0, 0);
+    this.startPoint = new PVector(canvasOffsetX, canvasOffsetY);
     this.size = size;
+    this.crtColour = this.crtLineColour = color(0, 0, 0);
+    this.crtColourMode = ColourMode.FILL;
+  }
+  
+  public void updateCrtColour() {
+    color newColour = color(redSlider.getValueI(), 
+                      greenSlider.getValueI(), 
+                      blueSlider.getValueI());
+                      
+    if (this.crtColourMode == ColourMode.FILL) {
+      crtColour = newColour;
+    } else {
+      crtLineColour = newColour;
+    }
   }
   
   public void drawAll() {
