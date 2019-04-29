@@ -61,10 +61,22 @@ class FileManager {
       fileName = hour() + "-" + minute() + "-" + second() + ".draw";
     }
     
+    private boolean _exists() { 
+      File testFile = new File(dataPath(fileName));
+      
+      return (testFile.exists() && !testFile.isDirectory());
+    }
+    
     private boolean _isProjectFile() {
       
       if (!fileName.endsWith(".draw")) {
         println(fileName + " doesn't have a .draw extension and it's not supported. Opening a new file.");
+        return false;
+      }
+      
+      if ( ! _exists() )  {
+         
+        println("A file with the name " + fileName + " couldn't be found");
         return false;
       }
       

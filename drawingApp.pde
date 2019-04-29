@@ -15,29 +15,40 @@ color selectedBgColour = color(0, 0, 0);
 color bgColour = color(255, 255, 255);
 
 final static float lineWidth = 10;
-
 Modes selectedMode = Modes.RECT;
+
+final static float coordX = 500;
+final static float coordY = 50;
 
 //  ============== INIT =================
 void setup() {
   size(1100, 1100);
-  view2D = new GView(this, canvasOffset, canvasOffset, canvasSize, canvasSize, JAVA2D);
   canvas = new Canvas(new PVector(canvasSize, canvasSize));
   shapeFactory = new ShapeFactory();
   fileManager = new FileManager("test.draw");
+  createGUI();
 }
 
 // ============== DRAWING FUNCTIONS =================
 
+void drawCrtColourSquare() {
+  strokeWeight(0);
+  fill(canvas.crtColour);
+  rect(720, 30, 50, 50);
+}
+
 void updateView() {
-  PGraphics v = view2D.getGraphics();
-  v.beginDraw();
-  
+  PGraphics canvasGraphics = canvasView.getGraphics();
+  canvasGraphics.beginDraw();
+ 
   clear();
-  
+ 
   background(bgColour);
+  
+  drawCrtColourSquare();
+  
   canvas.drawAll();
-  v.endDraw();
+  canvasGraphics.endDraw();
 }
 
 void draw() {
@@ -52,11 +63,11 @@ void drawShape() {
 
   switch (selectedMode) {
     case RECT:
-      lockedObj = new Rectangle(lockedPoint, color(selectedLineColour), color(selectedBgColour), lineWidth);
+      lockedObj = new Rectangle(lockedPoint, color(canvas.crtLineColour), color(canvas.crtColour), lineWidth);
       break;
      
     case ELLIPSE:
-      lockedObj = new Ellipse(lockedPoint, color(selectedLineColour), color(selectedBgColour), lineWidth);
+      lockedObj = new Ellipse(lockedPoint,  color(canvas.crtLineColour), color(canvas.crtColour), lineWidth);
       break;
       
     default:
@@ -98,16 +109,21 @@ void manipulateShape() {
 }
 
 void mousePressed() {
- 
-  if (isDrawingMode()) {
-    drawShape();
-  }
-  else {
-    lockedObj = canvas.currentlyHovering();
-    // make sure a shape's been locked
-    if (lockedObj != null) {
-      manipulateShape();
-    } 
+  
+  if (isInsideCanvas(mouseX, mouseY)) {
+    
+    if (isDrawingMode()) {
+      drawShape();
+    }
+    else {
+      lockedObj = canvas.currentlyHovering();
+      // make sure a shape's been locked
+      if (lockedObj != null) {
+        manipulateShape();
+      } 
+    }
+  } else {
+    btnMove.setEnabled(true);
   }
 }
 
@@ -115,8 +131,8 @@ void mouseDragged() {
 
   if (locked == true && lockedObj != null) {
     // make sure the user cannot draw outside the canvas
-    if (mouseX < canvasOffset || 
-        mouseY < canvasOffset || 
+    if (mouseX < canvasOffsetX || 
+        mouseY < canvasOffsetY || 
         mouseX > width || 
         mouseY > height) {
       return;
@@ -154,15 +170,18 @@ void keyPressed() {
   
   switch (keyCode) {
     case UP:
-      selectedMode = Modes.MOVE;
+      //selectedMode = Modes.MOVE;
+      btnMove.setEnabled(true);
       break;     
      // e
     case 69:
-      selectedMode = Modes.ELLIPSE;
+      //selectedMode = Modes.ELLIPSE;
+      btnEllipse.setEnabled(true);
       break;
      // r
     case 82:
-      selectedMode = Modes.RECT;
+      //selectedMode = Modes.RECT;
+      btnRect.setEnabled(true);
       break;
       
     case DOWN:
@@ -170,7 +189,6 @@ void keyPressed() {
       break;
       
     default: 
-      fileManager.save();
       break;
   }
 }

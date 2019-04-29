@@ -34,7 +34,14 @@ abstract class GraphicObject {
     try { 
       _setLimits();
       _normalisePosition();
-      stroke( _hasMouseOver() ? selectedObjLineColour : lineColour);
+      
+      if ( !isDrawingMode() ) {
+        stroke( _hasMouseOver() ? selectedObjLineColour : lineColour);
+      }
+      else {
+        stroke(lineColour);
+      }
+      
       strokeWeight(lineWidth);
       specificShapeDraw();
     }
@@ -62,16 +69,16 @@ abstract class GraphicObject {
   
   // normalise a shape's position so it doesn't escape the canvas
   private void _normalisePosition() {
-    if (leftmost < canvasOffset) {
-      startPoint.x += (canvasOffset - leftmost); 
+    if (leftmost < canvasOffsetX) {
+      startPoint.x += (canvasOffsetX - leftmost); 
     }
     
     if (rightmost > width) {
       startPoint.x -= (rightmost - width);
     }
     
-    if (upmost < canvasOffset) {
-      startPoint.y += (canvasOffset - upmost);
+    if (upmost < canvasOffsetY) {
+      startPoint.y += (canvasOffsetY - upmost);
     }
     
     if (downmost > height) {
