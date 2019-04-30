@@ -1,4 +1,4 @@
-// drawingApp.psd - main project file wrapping up all the logic
+// drawingApp.pde - main project file wrapping up all the logic
 
 import g4p_controls.*;
 
@@ -25,7 +25,7 @@ void setup() {
   size(1100, 1100);
   canvas = new Canvas(new PVector(canvasSize, canvasSize));
   shapeFactory = new ShapeFactory();
-  fileManager = new FileManager("test.draw");
+  fileManager = new FileManager();
   createGUI();
 }
 
@@ -33,7 +33,7 @@ void setup() {
 
 void drawCrtColourSquare() {
   strokeWeight(0);
-  fill(canvas.crtColour);
+  fill( (canvas.crtColourMode == ColourMode.FILL) ? canvas.crtColour : canvas.crtLineColour);
   rect(720, 30, 50, 50);
 }
 
@@ -102,6 +102,12 @@ void manipulateShape() {
         modifier.sub(lockedObj.startPoint);
         break;
         
+      case SELECT:
+        canvas.resetSelects();
+        lockedObj.selected = true;
+        canvas.selectedShape = lockedObj;
+        break;
+        
       default:
         return;
     }
@@ -144,6 +150,9 @@ void mouseDragged() {
       case MOVE:
         mousePos.sub(modifier);
         lockedObj.startPoint = mousePos;
+        break;
+        
+      case SELECT:
         break;
 
       default:

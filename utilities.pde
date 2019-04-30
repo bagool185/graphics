@@ -3,11 +3,15 @@
 // ========== USAGE MODES UTILITIES ========== 
 
 public enum Modes {
-  ELLIPSE, RECT, MOVE, RESIZE
+  ELLIPSE, RECT, MOVE, RESIZE, SELECT
 }
 
 public enum ColourMode {
   FILL, LINE
+}
+
+void loadFileCallback() {
+
 }
 
 boolean isDrawingMode() {

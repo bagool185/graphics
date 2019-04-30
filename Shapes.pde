@@ -9,17 +9,21 @@ abstract class GraphicObject {
   PVector size;
 
   color lineColour;
+  
   float lineWidth;
   float leftmost;
   float rightmost;
   float upmost;
   float downmost;
 
+  boolean selected; 
+
   GraphicObject(PVector startPoint, color lineColour, float lineWidth, PVector size) {
     this.startPoint = startPoint;
     this.lineColour = lineColour;
     this.lineWidth = lineWidth;
     this.size = abs(size);
+    this.selected = false;
   }
   
   GraphicObject(PVector startPoint, color lineColour, float lineWidth) {
@@ -27,6 +31,7 @@ abstract class GraphicObject {
     this.lineColour = lineColour;
     this.lineWidth = lineWidth;
     this.size = new PVector(1, 1);
+    this.selected = false;
   }
 
   void draw() {
@@ -35,8 +40,8 @@ abstract class GraphicObject {
       _setLimits();
       _normalisePosition();
       
-      if ( !isDrawingMode() ) {
-        stroke( _hasMouseOver() ? selectedObjLineColour : lineColour);
+      if ( !isDrawingMode() && this.selected) {
+        stroke(selectedObjLineColour);
       }
       else {
         stroke(lineColour);

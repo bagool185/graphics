@@ -16,6 +16,8 @@ class Canvas {
   color crtColour;
   color crtLineColour;
   ColourMode crtColourMode;
+  
+  GraphicObject selectedShape;
  
   public Canvas(PVector size) {
     graphicObjects = new ArrayList<GraphicObject>();
@@ -23,6 +25,30 @@ class Canvas {
     this.size = size;
     this.crtColour = this.crtLineColour = color(0, 0, 0);
     this.crtColourMode = ColourMode.FILL;
+  }
+  
+  public void clear() {
+    graphicObjects.clear();
+  }
+  
+  private void _updateSelectedShapeColour() {
+     
+    if (crtColourMode == ColourMode.FILL) {
+      switch (selectedShape.name()) {
+        case "rectangle":
+          ((Rectangle)selectedShape).fillColour = crtColour;
+          break;
+          
+        case "ellipse":
+          ((Ellipse)selectedShape).fillColour = crtColour;
+          break;
+          
+        default:
+          break;
+      }  
+    } else {
+      selectedShape.lineColour = crtLineColour;
+    }
   }
   
   public void updateCrtColour() {
@@ -35,11 +61,29 @@ class Canvas {
     } else {
       crtLineColour = newColour;
     }
+    
+    if (selectedMode == Modes.SELECT && selectedShape != null) {
+      _updateSelectedShapeColour();
+    }
   }
   
   public void drawAll() {
+    try {
+      for (GraphicObject object : graphicObjects) {
+        object.draw();
+      }
+    }
+    catch (java.util.ConcurrentModificationException ignored) {
+      delay(100);
+      drawAll();
+    }
+  }
+  
+  public void resetSelects() {
+    selectedShape = null;
+    
     for (GraphicObject object : graphicObjects) {
-      object.draw();
+      object.selected = false;
     }
   }
   
