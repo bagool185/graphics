@@ -89,28 +89,26 @@ PVector lockedPoint;
 /* Handle resize & move actions */
 void manipulateShape() {
   
-  if (lockedObj != null) {
-    locked = true;
-    
-    switch (selectedMode) {
-      case RESIZE:
-        lockedPoint = lockedObj.startPoint;
-        break;
-       
-      case MOVE:
-        modifier = new PVector(mouseX, mouseY);
-        modifier.sub(lockedObj.startPoint);
-        break;
-        
-      case SELECT:
-        canvas.resetSelects();
-        lockedObj.selected = true;
-        canvas.selectedShape = lockedObj;
-        break;
-        
-      default:
-        return;
-    }
+  locked = true;
+  
+  switch (selectedMode) {
+    case RESIZE:
+      lockedPoint = lockedObj.startPoint;
+      break;
+     
+    case MOVE:
+      modifier = new PVector(mouseX, mouseY);
+      modifier.sub(lockedObj.startPoint);
+      break;
+      
+    case SELECT:
+      canvas.resetSelected();
+      lockedObj.selected = true;
+      canvas.selectedShape = lockedObj;
+      break;
+     
+    default:
+      return;
   }
 }
 
@@ -151,7 +149,8 @@ void mouseDragged() {
         mousePos.sub(modifier);
         lockedObj.startPoint = mousePos;
         break;
-        
+      
+      case ROTATE:
       case SELECT:
         break;
 
@@ -195,6 +194,10 @@ void keyPressed() {
       
     case DOWN:
       selectedMode = Modes.RESIZE;
+      break;
+      
+    case DELETE:
+      canvas.deleteSelectedShape();
       break;
       
     default: 

@@ -17,6 +17,8 @@ abstract class GraphicObject {
   float downmost;
 
   boolean selected; 
+  
+  float rotationAngle;
 
   GraphicObject(PVector startPoint, color lineColour, float lineWidth, PVector size) {
     this.startPoint = startPoint;
@@ -24,23 +26,26 @@ abstract class GraphicObject {
     this.lineWidth = lineWidth;
     this.size = abs(size);
     this.selected = false;
+    this.rotationAngle = 0.0;
   }
   
   GraphicObject(PVector startPoint, color lineColour, float lineWidth) {
     this.startPoint = startPoint;
     this.lineColour = lineColour;
     this.lineWidth = lineWidth;
-    this.size = new PVector(1, 1);
+    this.size = new PVector(50, 50);
     this.selected = false;
+    this.rotationAngle = 0.0;
   }
 
   void draw() {
 
     try { 
+      _applyRotation();
       _setLimits();
       _normalisePosition();
-      
-      if ( !isDrawingMode() && this.selected) {
+      pushMatrix();
+      if ( this.selected ) {
         stroke(selectedObjLineColour);
       }
       else {
@@ -48,11 +53,36 @@ abstract class GraphicObject {
       }
       
       strokeWeight(lineWidth);
+      
       specificShapeDraw();
+      popMatrix();
+      resetMatrix();
     }
     catch (Exception ignored) {
       println("Couldn't draw shape");
     }
+  }
+  
+  private void _applyRotation() {
+    
+    if (selectedMode == Modes.ROTATE && selected) {
+      rotationAngle = knobRotate.getValueF();
+    }
+
+    if (rotationAngle != 0.0) {
+      PVector center = _getCenter();
+      translate(center.x, center.y);
+      
+      rotate(radians(rotationAngle));
+    }
+  }
+  
+  public void scaleBy(float scaleFactor) {
+    this.size.mult(scaleFactor);
+    this.size.x = this.size.x % width;
+    this.size.y = this.size.y % height;
+    _setLimits();
+    _normalisePosition();
   }
   
   public void updateSize(PVector newSize) {
@@ -97,6 +127,7 @@ abstract class GraphicObject {
   
   // set a shape's upmost, downmost, leftmost and rightmost points
   protected abstract void _setLimits();
+  protected abstract PVector _getCenter();
   protected abstract void specificShapeDraw();
 }
 
@@ -111,7 +142,6 @@ class Ellipse extends GraphicObject {
 
   Ellipse(PVector startPoint, color lineColour, color fillColour, float lineWidth) {
     super(startPoint, lineColour, lineWidth);
-    this.size = new PVector(1, 1);
     this.fillColour = fillColour;
   }
 
@@ -128,7 +158,17 @@ class Ellipse extends GraphicObject {
 
   void specificShapeDraw() {
       fill(fillColour);
-      ellipse(startPoint.x, startPoint.y, size.x, size.y);
+      
+      if (rotationAngle != 0.0) {
+        ellipse(0, 0, size.x, size.y);
+      }
+      else {
+         ellipse(startPoint.x, startPoint.y, size.x, size.y);
+      }
+  }
+  
+  protected PVector _getCenter() {
+    return super.startPoint;
   }
   
   protected void _setLimits() {
@@ -157,7 +197,6 @@ class Rectangle extends GraphicObject {
   Rectangle(PVector startPoint, color lineColour, color fillColour, float lineWidth) {
     super(startPoint, lineColour, lineWidth);
     this.fillColour = fillColour;
-    this.size = new PVector(1, 1);
   }
 
   public String name() {
@@ -171,9 +210,22 @@ class Rectangle extends GraphicObject {
     return data;
   }
   
+  protected PVector _getCenter() {
+    PVector center = new PVector(super.startPoint.x + this.size.x / 2, super.startPoint.y + this.size.y / 2);
+    
+    return center;
+  }
+  
   void specificShapeDraw() {
-    fill(fillColour); 
-    rect(super.startPoint.x, super.startPoint.y, this.size.x, this.size.y);
+  
+    fill(fillColour);
+    
+    if (rotationAngle != 0.0) {
+      rect(0, 0, this.size.x, this.size.y);
+    }
+    else {
+      rect(super.startPoint.x, super.startPoint.y, this.size.x, this.size.y);
+    }
   }
 
   protected void _setLimits() {
@@ -197,33 +249,3 @@ class Rectangle extends GraphicObject {
     }
   }
 }
-/*
-class Line extends GraphicObject {
-  PVector endPoint;
-  double lineSize;
-  
-  Line(PVector a, PVector b, color lineColour, float lineWidth) {
-    super(a, lineColour, lineWidth);
-    
-    endPoint = b;
-  }
-
-  public String name() {
-    return "line";
-  }
-  
-  public void specificShapeDraw() {
-    line(super.startPoint.x, super.startPoint.y, endPoint.x, endPoint.y); 
-    lineSize = super.startPoint.dist(this.endPoint);
-  }
-  
-  
-  public void updateSize(PVector newSize) {
-  }
-
-  public void updateSize(float sizeX, float sizeY) {
-
-  }
-  
-  protected void _setLimits() {}
-}*/

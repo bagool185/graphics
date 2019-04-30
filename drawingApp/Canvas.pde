@@ -79,12 +79,24 @@ class Canvas {
     }
   }
   
+  public void deleteSelectedShape() {
+  
+    if (selectedShape != null) {
+      graphicObjects.remove(selectedShape);
+    } else {
+      println("no shape selected");
+    }
+  }
+  
+  public void resetSelected() {
+    if (selectedShape != null) {
+      selectedShape.selected = false;
+      selectedShape = null;
+    }
+  }
+  
   public void resetSelects() {
     selectedShape = null;
-    
-    for (GraphicObject object : graphicObjects) {
-      object.selected = false;
-    }
   }
   
   public void addObject(GraphicObject object) {
