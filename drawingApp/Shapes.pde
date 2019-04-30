@@ -37,6 +37,13 @@ abstract class GraphicObject {
     this.selected = false;
     this.rotationAngle = 0.0;
   }
+  
+  GraphicObject(PVector startPoint, PVector size) {
+     this.startPoint = startPoint;
+     this.size = abs(size);
+     this.selected = false;
+     this.rotationAngle = 0.0;
+  }
 
   void draw() {
 
@@ -45,16 +52,18 @@ abstract class GraphicObject {
       _setLimits();
       _normalisePosition();
       pushMatrix();
-      if ( this.selected ) {
-        stroke(selectedObjLineColour);
-      }
-      else {
-        stroke(lineColour);
+      
+      if (name() != "image") {   
+        if ( this.selected ) {
+          stroke(selectedObjLineColour);
+        }
+        else {
+          stroke(lineColour);
+        }
+        strokeWeight(lineWidth);
       }
       
-      strokeWeight(lineWidth);
-      
-      specificShapeDraw();
+      _specificShapeDraw();
       popMatrix();
       resetMatrix();
     }
@@ -128,7 +137,68 @@ abstract class GraphicObject {
   // set a shape's upmost, downmost, leftmost and rightmost points
   protected abstract void _setLimits();
   protected abstract PVector _getCenter();
-  protected abstract void specificShapeDraw();
+  protected abstract void _specificShapeDraw();
+}
+
+class Image extends GraphicObject {
+  
+  PImage img;
+  String filename;
+  
+  Image(PImage img, String filename, PVector startPoint, PVector size) {
+    super(startPoint, size);
+    this.img = img;
+    this.filename = filename;
+  }
+  
+  Image(PImage img, String filename, PVector startPoint) {
+    super(startPoint, new PVector(img.width, img.height));
+    this.filename = filename;
+    this.img = img;
+  }
+  
+  public String name() {
+    return "image";
+  }
+  
+  protected PVector _getCenter() {
+    PVector center = new PVector(super.startPoint.x + this.size.x / 2, super.startPoint.y + this.size.y / 2);
+    
+    return center;
+  }
+  
+  protected void _specificShapeDraw() {
+    image(img, super.startPoint.x, super.startPoint.y, super.size.x, super.size.y);
+  }
+  
+  public String dataAsString() {
+     String data = "image " + startPoint.x + " " + filename + " " + startPoint.y + " " + size.x + " " + size.y;
+       
+     return data;
+  }
+  
+  protected void _setLimits() {
+
+    if (super.size.x > 0.0) {
+      super.leftmost = super.startPoint.x - super.lineWidth / 2;
+      super.rightmost = super.startPoint.x + super.size.x + super.lineWidth / 2;
+    }
+    else {
+      super.rightmost = super.startPoint.x - super.lineWidth / 2;
+      super.leftmost = super.startPoint.x + super.size.x + super.lineWidth / 2;
+    }
+    
+    if (super.size.y > 0.0) {
+      super.upmost = super.startPoint.y - super.lineWidth / 2;
+      super.downmost = super.startPoint.y + super.size.y + super.lineWidth / 2; 
+    }
+    else {
+      super.downmost = super.startPoint.y - super.lineWidth / 2;
+      super.upmost = super.startPoint.y + super.size.y + super.lineWidth / 2;
+    }
+  }
+  
+  
 }
 
 class Ellipse extends GraphicObject {
@@ -156,7 +226,7 @@ class Ellipse extends GraphicObject {
      return data;
   }
 
-  void specificShapeDraw() {
+  protected void _specificShapeDraw() {
       fill(fillColour);
       
       if (rotationAngle != 0.0) {
@@ -216,7 +286,7 @@ class Rectangle extends GraphicObject {
     return center;
   }
   
-  void specificShapeDraw() {
+  protected void _specificShapeDraw() {
   
     fill(fillColour);
     

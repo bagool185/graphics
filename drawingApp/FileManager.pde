@@ -6,6 +6,7 @@ import java.io.FileWriter;
 public class FileManager {
   
     File file;
+    PImage image;
     
     // ================ CONSTRUCTORS ================
   
@@ -15,7 +16,7 @@ public class FileManager {
 
     // ================ PUBLIC METHODS ================
    
-   public void loadFile() {
+   public void loadProjectFile() {
      selectInput("Select a .draw file to proceed:", "loadFileContents", null, this);
    }
    

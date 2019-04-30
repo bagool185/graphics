@@ -36,8 +36,11 @@ public void listFile_click1(GDropList source, GEvent event) { //_CODE_:listFile:
     case "Save":
       fileManager.save();
       break;
-    case "Load file":
-      fileManager.loadFile();
+    case "Load .draw file":
+      fileManager.loadProjectFile();
+      break;
+      
+    case "Load image":
       break;
   }
 } //_CODE_:listFile:318425:
